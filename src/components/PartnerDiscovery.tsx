@@ -1,5 +1,6 @@
-import { motion, useAnimationControls } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const clients = [
   { name: 'GRAVITAS INVESTMENT LTD', summary: 'Strategic branding and digital presence transformation for investment portfolio management.', logoPath: '/images/logos/gravitas.jpg' },
@@ -24,17 +25,10 @@ const clients = [
 
 interface PartnerCardProps {
   client: typeof clients[0];
-  isHovered: boolean;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
 }
 
-const PartnerCard = ({ client, isHovered, onMouseEnter, onMouseLeave }: PartnerCardProps) => (
-  <div
-    className="flex-shrink-0 w-[250px] sm:w-[300px] bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 relative group mx-2 sm:mx-3"
-    onMouseEnter={onMouseEnter}
-    onMouseLeave={onMouseLeave}
-  >
+const PartnerCard = ({ client }: PartnerCardProps) => (
+  <div className="flex-shrink-0 w-[250px] sm:w-[300px] bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 mx-2 sm:mx-3">
     <div className="flex items-center justify-center h-16 mb-4 w-full">
       <img
         src={client.logoPath}
@@ -53,58 +47,20 @@ const PartnerCard = ({ client, isHovered, onMouseEnter, onMouseLeave }: PartnerC
     <p className="text-gray-500 text-center text-xs sm:text-sm leading-relaxed line-clamp-2">
       {client.summary}
     </p>
-
-    {isHovered && (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 10 }}
-        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] sm:w-[320px] bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-20"
-      >
-        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">{client.summary}</p>
-      </motion.div>
-    )}
   </div>
 );
 
 export default function PartnerDiscovery() {
-  const controls = useAnimationControls();
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const isPausedRef = useRef(false);
-  const doubledClients = [...clients, ...clients];
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    controls.start({
-      x: ['0%', '-50%'],
-      transition: {
-        x: {
-          repeat: Infinity,
-          repeatType: 'loop',
-          duration: 35,
-          ease: 'linear',
-        },
-      },
-    });
-  }, [controls]);
-
-  const handleMouseEnter = () => {
-    isPausedRef.current = true;
-    controls.stop();
-  };
-
-  const handleMouseLeave = () => {
-    isPausedRef.current = false;
-    controls.start({
-      x: ['0%', '-50%'],
-      transition: {
-        x: {
-          repeat: Infinity,
-          repeatType: 'loop',
-          duration: 35,
-          ease: 'linear',
-        },
-      },
-    });
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = scrollContainerRef.current.offsetWidth;
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
   };
 
   return (
@@ -130,29 +86,34 @@ export default function PartnerDiscovery() {
           <div className="absolute -top-20 -right-20 w-96 h-96 bg-[#990000]/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-[#990000]/5 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Fade edges */}
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg border border-gray-200 transition-colors"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-5 h-5 text-[#1A1A1A]" />
+          </button>
+
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg border border-gray-200 transition-colors"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-5 h-5 text-[#1A1A1A]" />
+          </button>
+
           <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none" />
 
           <div
-            className="overflow-hidden"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            ref={scrollContainerRef}
+            className="overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth py-10"
           >
-            <motion.div
-              className="flex w-max"
-              animate={controls}
-            >
-              {doubledClients.map((client, index) => (
-                <PartnerCard
-                  key={index}
-                  client={client}
-                  isHovered={hoveredIndex === index}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                />
+            <div className="flex w-max">
+              {clients.map((client, index) => (
+                <PartnerCard key={index} client={client} />
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
