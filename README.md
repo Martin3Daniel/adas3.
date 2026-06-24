@@ -1,4 +1,4 @@
-# Adas Concepts - Automotive Services Website
+# Adas Concepts - Automotive Services Website 
 
 A modern React/TypeScript website for Adas Concepts automotive service center.
 
